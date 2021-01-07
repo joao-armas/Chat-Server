@@ -2,11 +2,15 @@ package server;
 
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.util.ArrayList;
 
 public class Server {
 
     private static DatagramSocket socket;
     private static boolean running;
+    private static int clientID;
+    private static ArrayList<ClientInfo> clients = new ArrayList<ClientInfo>();
 
     public static void start(int port) {
         try {
@@ -20,9 +24,20 @@ public class Server {
     }
 
     private static void broadcast(String message) {
+
     }
 
-    public static void send() {
+    public static void send(String message, InetAddress address, int port) {
+        try {
+
+            message += "\\e";
+            byte[] data = message.getBytes();
+            DatagramPacket packet = new DatagramPacket(data, data.length, address, port);
+            socket.send(packet);
+            System.out.println("Sent message to, " + address.getHostAddress() + ":" + port);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static void listen() {
@@ -38,7 +53,8 @@ public class Server {
                         message = message.substring(0, message.indexOf("\\e"));
 
                         //MANAGE MESSAGE
-                        broadcast(message);
+                        if (!isCommand())
+                            broadcast(message);
 
                     }
 
@@ -48,6 +64,26 @@ public class Server {
             }
         };
         listenThread.start();
+    }
+
+    /*
+     *SERVER COMMAND LIST
+     *\\con[name]: -> Connects Client to server
+     *\\dis[id]: -> Disconnects Client from server
+     */
+
+    private static boolean isCommand(String message, DatagramPacket packet) {
+
+        if (message.startsWith("\\con:")) {
+            // RUN CONNECTION CODE
+            
+            String name = message.substring(message.indexOf(":") + 1);
+            clients.add(new ClientInfo(name, clientID++, packet.getAddress(), packet.getPort()));
+
+
+            return true;
+        }
+        return false;
     }
 
     public static void stop() {
