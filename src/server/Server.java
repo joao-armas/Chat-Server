@@ -76,7 +76,7 @@ public class Server {
 
         if (message.startsWith("\\con:")) {
             // RUN CONNECTION CODE
-            
+
             String name = message.substring(message.indexOf(":") + 1);
             clients.add(new ClientInfo(name, clientID++, packet.getAddress(), packet.getPort()));
 
